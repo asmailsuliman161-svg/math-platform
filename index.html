@@ -1,17 +1,130 @@
+نسخ التعليمات البرمجية
+Html id="admin_system"
 <!DOCTYPE html>
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مشروع منصة الهداية</title>
+<title>منصة الهداية</title>
+
+<style>
+body{
+  font-family: Arial;
+  text-align:center;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  color:white;
+}
+button{
+  padding:8px 14px;
+  margin:5px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+button:hover{background:gold;}
+input{
+  padding:6px;
+  margin:4px;
+}
+</style>
 </head>
 
-<body style="text-align:center;font-family:Arial;background:#1e3c72;color:white;">
+<body>
 
 <h1>🎓 منصة الهداية</h1>
-<h2>الصف الأول الثانوي</h2>
 
-<p>الموقع يعمل بنجاح 🚀</p>
+<div id="app"></div>
+
+<script>
+
+let questions = [];
+
+function start(){
+  document.getElementById("app").innerHTML=`
+    <button onclick="student()">دخول طالب</button>
+    <button onclick="admin()">دخول معلم</button>
+  `;
+}
+
+function student(){
+  if(questions.length===0){
+    alert("لا توجد أسئلة بعد");
+    return;
+  }
+
+  let q = questions[0];
+
+  document.getElementById("app").innerHTML=`
+    <h2>${q.question}</h2>
+    <button onclick="check(true)">صح</button>
+    <button onclick="check(false)">خطأ</button>
+    <div id="result"></div>
+  `;
+}
+
+function check(ans){
+  document.getElementById("result").innerHTML=
+  ans ? "✅ إجابة صحيحة" : "❌ إجابة خاطئة";
+}
+
+function admin(){
+  let pass=prompt("كلمة المرور:");
+  if(pass==="1234"){
+    showAdmin();
+  }else{
+    alert("خطأ");
+  }
+}
+
+function showAdmin(){
+  document.getElementById("app").innerHTML=`
+    <h2>لوحة التحكم</h2>
+
+    <input id="q" placeholder="اكتب السؤال">
+    <br>
+    <button onclick="addQuestion()">إضافة سؤال</button>
+
+    <h3>الأسئلة الحالية:</h3>
+    <div id="list"></div>
+
+    <br>
+    <button onclick="start()">رجوع</button>
+  `;
+
+  renderList();
+}
+
+function addQuestion(){
+  let text=document.getElementById("q").value;
+  if(text==="") return;
+
+  questions.push({question:text});
+  renderList();
+}
+
+function renderList(){
+  let list=document.getElementById("list");
+  list.innerHTML="";
+
+  questions.forEach((q,index)=>{
+    list.innerHTML+=`
+      <p>
+        ${q.question}
+        <button onclick="deleteQ(${index})">حذف</button>
+      </p>
+    `;
+  });
+}
+
+function deleteQ(index){
+  questions.splice(index,1);
+  renderList();
+}
+
+start();
+
+</script>
 
 </body>
 </html>
+
