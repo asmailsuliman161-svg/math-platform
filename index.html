@@ -1,283 +1,120 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <link rel="stylesheet" href="style.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartMath</title>
-{
+<title>مكتبة الرياضيات</title>
+
+<style>
+body{
   margin:0;
-  font-family: "Segoe UI", Tahoma, sans-serif;
+  font-family: Arial, sans-serif;
   background:#f1f5f9;
-  display:flex;
-  height:100vh;
+  text-align:center;
 }
 
-/* Sidebar */
-.sidebar{
-  width:240px;
-  background:linear-gradient(180deg,#1e3a8a,#0f172a);
+header{
+  background:#1e3a8a;
   color:white;
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.sidebar h2{
-  margin:0 0 15px 0;
+  padding:15px;
   font-size:20px;
-}
-
-.sidebar button{
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  background:rgba(255,255,255,0.1);
-  color:white;
-  transition:0.3s;
-}
-
-.sidebar button:hover{
-  background:rgba(255,255,255,0.25);
-}
-
-/* Content */
-.content{
-  flex:1;
-  padding:25px;
-  overflow:auto;
-}
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
 }
 
 .card{
   background:white;
-  padding:25px;
-  border-radius:14px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.08);
-  margin-bottom:20px;
+  margin:15px auto;
+  padding:20px;
+  width:90%;
+  max-width:500px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* Inputs */
-input, select{
+input{
   padding:10px;
-  margin:6px 0;
-  width:100%;
-  max-width:350px;
+  margin:6px;
+  width:85%;
+  max-width:400px;
   border-radius:8px;
-  border:1px solid #d1d5db;
-  outline:none;
+  border:1px solid #ccc;
 }
 
 button{
-  padding:10px 16px;
+  padding:10px 18px;
+  margin:6px;
   border:none;
   border-radius:8px;
-  cursor:pointer;
   background:#2563eb;
   color:white;
-  transition:0.3s;
+  cursor:pointer;
 }
 
 button:hover{
   background:#1d4ed8;
 }
 
-/* Responsive */
-@media(max-width:768px){
-  body{
-    flex-direction:column;
-  }
-  .sidebar{
-    width:100%;
-    flex-direction:row;
-    flex-wrap:wrap;
-    justify-content:center;
-  }
+a{
+  display:block;
+  margin-top:8px;
 }
+</style>
 </head>
 
 <body>
 
-<div class="sidebar">
-  <h2>SmartMath</h2>
-  <button onclick="showHome()">الرئيسية</button>
-  <button onclick="showLibrary()">المكتبة</button>
-  <button onclick="showAdmin()">لوحة التحكم</button>
-  <button onclick="showSuperAdmin()">لوحة المدير العام</button>
-  <button onclick="logout()">خروج</button>
+<header>
+📚 مكتبة الرياضيات
+</header>
+
+<div class="card">
+  <h3>إضافة كتاب</h3>
+  <input id="title" placeholder="اسم الكتاب">
+  <br>
+  <input id="link" placeholder="رابط PDF">
+  <br>
+  <button onclick="addBook()">إضافة</button>
 </div>
 
-<div class="content">
-  <div class="topbar">
-    <h3 id="pageTitle">Dashboard</h3>
-    <select onchange="changeLang(this.value)">
-      <option value="ar">العربية</option>
-      <option value="en">English</option>
-      <option value="zh">中文</option>
-      <option value="ur">اردو</option>
-    </select>
-  </div>
-
-  <div id="main"></div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<div id="books"></div>
 
 <script>
 
-// 🔴 ضع بيانات Firebase هنا فقط
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-function showHome(){
-  document.getElementById("pageTitle").innerText="Home";
-  document.getElementById("main").innerHTML=`
-    <div class="card">
-      <h3>مرحبًا بكم في SmartMath</h3>
-      <p>Global Education Platform</p>
-      <p>Founder: Asmail Suliman Hassan Suliman</p>
-    </div>
-  `;
-}
-
-function showLibrary(){
-  document.getElementById("pageTitle").innerText="Library";
-  document.getElementById("main").innerHTML=`
-    <div class="card">
-      <h3>📚 المكتبة</h3>
-      <input id="bookTitle" placeholder="اسم الكتاب">
-      <input id="bookUrl" placeholder="رابط الكتاب">
-      <button onclick="addBook()">إضافة</button>
-      <div id="books"></div>
-    </div>
-  `;
-  loadBooks();
-}
+// تخزين بسيط مؤقت داخل الجهاز
+let books = JSON.parse(localStorage.getItem("books")) || [];
 
 function addBook(){
-  db.collection("books").add({
-    title: document.getElementById("bookTitle").value,
-    url: document.getElementById("bookUrl").value,
-    isPremium:false
-  });
-}
+  let title = document.getElementById("title").value;
+  let link = document.getElementById("link").value;
 
-function loadBooks(){
-  db.collection("books").onSnapshot(snapshot=>{
-    let html="";
-    snapshot.forEach(doc=>{
-      html+=`<p><a href="${doc.data().url}" target="_blank">${doc.data().title}</a></p>`;
-    });
-    document.getElementById("books").innerHTML=html;
-  });
-}
-
-function showAdmin(){
-  let user = auth.currentUser;
-  if(!user) return;
-
-  db.collection("users").doc(user.uid).get().then(doc=>{
-    if(doc.data().role !== "teacher" && doc.data().role !== "superadmin"){
-      alert("غير مصرح");
-      return;
-    }
-
-    document.getElementById("main").innerHTML=`
-      <div class="card">
-        <h3>إضافة اختبار</h3>
-        <input id="examTitle" placeholder="عنوان الاختبار">
-        <button onclick="addExam()">إضافة</button>
-      </div>
-    `;
-  });
-}
-
-function addExam(){
-  db.collection("exams").add({
-    title: document.getElementById("examTitle").value,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-}
-
-function showSuperAdmin(){
-  let user = auth.currentUser;
-  if(!user) return;
-
-  db.collection("users").doc(user.uid).get().then(doc=>{
-    if(doc.data().role !== "superadmin"){
-      alert("غير مصرح");
-      return;
-    }
-
-    document.getElementById("main").innerHTML=`
-      <div class="card">
-        <h3>👑 المدير العام</h3>
-        <button onclick="loadUsers()">إدارة المستخدمين</button>
-        <button onclick="loadStats()">الإحصائيات</button>
-      </div>
-    `;
-  });
-}
-
-function loadUsers(){
-  db.collection("users").get().then(snapshot=>{
-    let html="<div class='card'><h3>المستخدمون</h3>";
-    snapshot.forEach(doc=>{
-      html+=`<p>${doc.data().email} - ${doc.data().role}</p>`;
-    });
-    html+="</div>";
-    document.getElementById("main").innerHTML=html;
-  });
-}
-
-function loadStats(){
-  Promise.all([
-    db.collection("users").get(),
-    db.collection("schools").get()
-  ]).then(([u,s])=>{
-    document.getElementById("main").innerHTML=`
-      <div class="card">
-        <h3>📊 الإحصائيات</h3>
-        <p>المستخدمون: ${u.size}</p>
-        <p>المدارس: ${s.size}</p>
-      </div>
-    `;
-  });
-}
-
-function changeLang(lang){
-  localStorage.setItem("lang",lang);
-}
-
-function logout(){
-  auth.signOut();
-}
-
-auth.onAuthStateChanged(user=>{
-  if(user){
-    showHome();
+  if(title === "" || link === ""){
+    alert("أدخل البيانات كاملة");
+    return;
   }
-});
 
-showHome();
+  books.push({title, link});
+  localStorage.setItem("books", JSON.stringify(books));
+
+  document.getElementById("title").value = "";
+  document.getElementById("link").value = "";
+
+  showBooks();
+}
+
+function showBooks(){
+  let container = document.getElementById("books");
+  container.innerHTML = "";
+
+  books.forEach(book=>{
+    container.innerHTML += `
+      <div class="card">
+        <strong>${book.title}</strong>
+        <a href="${book.link}" target="_blank">فتح الكتاب</a>
+      </div>
+    `;
+  });
+}
+
+showBooks();
 
 </script>
 
