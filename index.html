@@ -124,7 +124,30 @@ function deleteQ(index){
 start();
 
 </script>
+نسخ التعليمات البرمجية
+Html id="firebase_plain"
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
+<script>
+  // إعداد Firebase الخاص بك
+  const firebaseConfig = {
+    apiKey: "ضع_المفتاح_هنا",
+    authDomain: "math-platform-ca14a.firebaseapp.com",
+    projectId: "math-platform-ca14a",
+    storageBucket: "math-platform-ca14a.firebasestorage.app",
+    messagingSenderId: "85119704109",
+    appId: "1:85119704109:web:d91524643bdbf2477e2ca4"
+  };
+
+  // تهيئة Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  // تفعيل Firestore
+  const db = firebase.firestore();
+
+  console.log("Firebase Connected Successfully 🚀");
+</script>
 </body>
-</html>
-
+</html
