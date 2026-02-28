@@ -3,33 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>منصة الهداية الذكية</title>
+<title>منصة الهداية</title>
 
 <style>
 body{
   font-family: Arial;
+  margin:0;
+  background:#0f172a;
+  color:white;
   text-align:center;
-  background:linear-gradient(135deg,#1e3c72,#2a5298);
+}
+
+header{
+  background:#1e293b;
+  padding:15px;
+  font-size:22px;
+  font-weight:bold;
+}
+
+button{
+  padding:10px 16px;
+  margin:6px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#3b82f6;
   color:white;
 }
-button{
-  padding:8px 14px;
-  margin:5px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
+
+button:hover{
+  background:#2563eb;
 }
-button:hover{background:gold;}
+
 input{
-  padding:6px;
-  margin:4px;
+  padding:8px;
+  margin:5px;
+  width:80%;
+  max-width:300px;
+  border-radius:6px;
+  border:none;
 }
+
+.card{
+  background:white;
+  color:black;
+  padding:15px;
+  margin:10px auto;
+  width:90%;
+  max-width:400px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+
+.admin{
+  background:#facc15;
+  color:black;
+}
+
 </style>
 </head>
 
 <body>
 
-<h1>🎓 منصة الهداية</h1>
+<header>🎓 منصة الهداية الذكية</header>
+
 <div id="app"></div>
 
 <!-- Firebase -->
@@ -38,74 +75,62 @@ input{
 
 <script>
 
+// 🔹 ضع بيانات Firebase الخاصة بك هنا
 const firebaseConfig = {
   apiKey: "ضع_المفتاح_هنا",
-  authDomain: "math-platform-ca14a.firebaseapp.com",
-  projectId: "math-platform-ca14a",
-  storageBucket: "math-platform-ca14a.firebasestorage.app",
-  messagingSenderId: "85119704109",
-  appId: "1:85119704109:web:d91524643bdbf2477e2ca4"
+  authDomain: "ضع_الدومين_هنا",
+  projectId: "ضع_معرف_المشروع",
+  storageBucket: "ضع_المخزن",
+  messagingSenderId: "ضع_المرسل",
+  appId: "ضع_appId"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let questions = [];
-
-function loadQuestions(){
-  db.collection("questions").get().then(snapshot=>{
-    questions = [];
-    snapshot.forEach(doc=>{
-      questions.push({
-        id: doc.id,
-        question: doc.data().question
-      });
-    });
-  });
-}
-
 function start(){
   document.getElementById("app").innerHTML=`
     <button onclick="student()">دخول طالب</button>
-    <button onclick="admin()">دخول معلم</button>
+    <button class="admin" onclick="admin()">دخول معلم</button>
   `;
-  loadQuestions();
 }
 
 function student(){
-  loadQuestions();
-
-  setTimeout(()=>{
-    if(questions.length===0){
+  db.collection("questions").get().then(snapshot=>{
+    if(snapshot.empty){
       alert("لا توجد أسئلة بعد");
       return;
     }
 
-    let q = questions[0];
+    document.getElementById("app").innerHTML="";
+    snapshot.forEach(doc=>{
+      document.getElementById("app").innerHTML+=`
+        <div class="card">
+          <p>${doc.data().question}</p>
+        </div>
+      `;
+    });
 
-    document.getElementById("app").innerHTML=`
-      <h2>${q.question}</h2>
-      <div id="result"></div>
-      <br>
-      <button onclick="start()">رجوع</button>
+    document.getElementById("app").innerHTML+=`
+      <br><button onclick="start()">رجوع</button>
     `;
-  },500);
+  });
 }
 
 function admin(){
-  let pass=prompt("كلمة المرور:");
+  let pass=prompt("أدخل كلمة المرور:");
   if(pass==="1234"){
     showAdmin();
   }else{
-    alert("خطأ");
+    alert("كلمة مرور خاطئة");
   }
 }
 
 function showAdmin(){
   document.getElementById("app").innerHTML=`
-    <h2>لوحة التحكم</h2>
+    <h2>لوحة المعلم</h2>
 
-    <input id="q" placeholder="اكتب السؤال">
+    <input id="questionInput" placeholder="اكتب السؤال">
     <br>
     <button onclick="addQuestion()">إضافة سؤال</button>
 
@@ -116,45 +141,46 @@ function showAdmin(){
     <button onclick="start()">رجوع</button>
   `;
 
-  renderList();
+  loadQuestions();
 }
 
 function addQuestion(){
-  let text=document.getElementById("q").value;
+  let text=document.getElementById("questionInput").value;
   if(text==="") return;
 
   db.collection("questions").add({
     question:text
   }).then(()=>{
     loadQuestions();
-    renderList();
+    document.getElementById("questionInput").value="";
   });
 }
 
-function renderList(){
+function loadQuestions(){
   db.collection("questions").get().then(snapshot=>{
     let list=document.getElementById("list");
     list.innerHTML="";
+
     snapshot.forEach(doc=>{
       list.innerHTML+=`
-        <p>
-          ${doc.data().question}
-          <button onclick="deleteQ('${doc.id}')">حذف</button>
-        </p>
+        <div class="card">
+          <p>${doc.data().question}</p>
+          <button onclick="deleteQuestion('${doc.id}')">حذف</button>
+        </div>
       `;
     });
   });
 }
 
-function deleteQ(id){
+function deleteQuestion(id){
   db.collection("questions").doc(id).delete().then(()=>{
     loadQuestions();
-    renderList();
   });
 }
 
 start();
 
 </script>
+
 </body>
 </html>
