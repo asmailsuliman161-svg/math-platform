@@ -1,11 +1,9 @@
-نسخ التعليمات البرمجية
-Html
 <!DOCTYPE html>
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>منصة الهداية</title>
+<title>منصة الهداية الذكية</title>
 
 <style>
 body{
@@ -32,7 +30,6 @@ input{
 <body>
 
 <h1>🎓 منصة الهداية</h1>
-
 <div id="app"></div>
 
 <!-- Firebase -->
@@ -40,36 +37,45 @@ input{
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-  // 🔹 ضع بيانات Firebase الخاصة بك هنا
-  const firebaseConfig = {
-    apiKey: "ضع_المفتاح_هنا",
-    authDomain: "math-platform-ca14a.firebaseapp.com",
-    projectId: "math-platform-ca14a",
-    storageBucket: "math-platform-ca14a.firebasestorage.app",
-    messagingSenderId: "85119704109",
-    appId: "1:85119704109:web:d91524643bdbf2477e2ca4"
-  };
 
-  // تهيئة Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+const firebaseConfig = {
+  apiKey: "ضع_المفتاح_هنا",
+  authDomain: "math-platform-ca14a.firebaseapp.com",
+  projectId: "math-platform-ca14a",
+  storageBucket: "math-platform-ca14a.firebasestorage.app",
+  messagingSenderId: "85119704109",
+  appId: "1:85119704109:web:d91524643bdbf2477e2ca4"
+};
 
-  console.log("Firebase Connected 🚀");
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  // =========================
-  // نظام المنصة
-  // =========================
+let questions = [];
 
-  let questions = [];
+function loadQuestions(){
+  db.collection("questions").get().then(snapshot=>{
+    questions = [];
+    snapshot.forEach(doc=>{
+      questions.push({
+        id: doc.id,
+        question: doc.data().question
+      });
+    });
+  });
+}
 
-  function start(){
-    document.getElementById("app").innerHTML=`
-      <button onclick="student()">دخول طالب</button>
-      <button onclick="admin()">دخول معلم</button>
-    `;
-  }
+function start(){
+  document.getElementById("app").innerHTML=`
+    <button onclick="student()">دخول طالب</button>
+    <button onclick="admin()">دخول معلم</button>
+  `;
+  loadQuestions();
+}
 
-  function student(){
+function student(){
+  loadQuestions();
+
+  setTimeout(()=>{
     if(questions.length===0){
       alert("لا توجد أسئلة بعد");
       return;
@@ -79,73 +85,76 @@ input{
 
     document.getElementById("app").innerHTML=`
       <h2>${q.question}</h2>
-      <button onclick="check(true)">صح</button>
-      <button onclick="check(false)">خطأ</button>
       <div id="result"></div>
-    `;
-  }
-
-  function check(ans){
-    document.getElementById("result").innerHTML=
-    ans ? "✅ إجابة صحيحة" : "❌ إجابة خاطئة";
-  }
-
-  function admin(){
-    let pass=prompt("كلمة المرور:");
-    if(pass==="1234"){
-      showAdmin();
-    }else{
-      alert("خطأ");
-    }
-  }
-
-  function showAdmin(){
-    document.getElementById("app").innerHTML=`
-      <h2>لوحة التحكم</h2>
-
-      <input id="q" placeholder="اكتب السؤال">
-      <br>
-      <button onclick="addQuestion()">إضافة سؤال</button>
-
-      <h3>الأسئلة الحالية:</h3>
-      <div id="list"></div>
-
       <br>
       <button onclick="start()">رجوع</button>
     `;
+  },500);
+}
 
-    renderList();
+function admin(){
+  let pass=prompt("كلمة المرور:");
+  if(pass==="1234"){
+    showAdmin();
+  }else{
+    alert("خطأ");
   }
+}
 
-  function addQuestion(){
-    let text=document.getElementById("q").value;
-    if(text==="") return;
+function showAdmin(){
+  document.getElementById("app").innerHTML=`
+    <h2>لوحة التحكم</h2>
 
-    questions.push({question:text});
+    <input id="q" placeholder="اكتب السؤال">
+    <br>
+    <button onclick="addQuestion()">إضافة سؤال</button>
+
+    <h3>الأسئلة:</h3>
+    <div id="list"></div>
+
+    <br>
+    <button onclick="start()">رجوع</button>
+  `;
+
+  renderList();
+}
+
+function addQuestion(){
+  let text=document.getElementById("q").value;
+  if(text==="") return;
+
+  db.collection("questions").add({
+    question:text
+  }).then(()=>{
+    loadQuestions();
     renderList();
-  }
+  });
+}
 
-  function renderList(){
+function renderList(){
+  db.collection("questions").get().then(snapshot=>{
     let list=document.getElementById("list");
     list.innerHTML="";
-
-    questions.forEach((q,index)=>{
+    snapshot.forEach(doc=>{
       list.innerHTML+=`
         <p>
-          ${q.question}
-          <button onclick="deleteQ(${index})">حذف</button>
+          ${doc.data().question}
+          <button onclick="deleteQ('${doc.id}')">حذف</button>
         </p>
       `;
     });
-  }
+  });
+}
 
-  function deleteQ(index){
-    questions.splice(index,1);
+function deleteQ(id){
+  db.collection("questions").doc(id).delete().then(()=>{
+    loadQuestions();
     renderList();
-  }
+  });
+}
 
-  start();
+start();
+
 </script>
-
 </body>
 </html>
