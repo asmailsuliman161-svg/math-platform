@@ -4,39 +4,48 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SmartMath</title>
-
-<style>
-body{
+{
   margin:0;
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background:#f1f5f9;
   display:flex;
   height:100vh;
-  background:#f4f6fb;
 }
 
+/* Sidebar */
 .sidebar{
-  width:220px;
-  background:#1e3a8a;
+  width:240px;
+  background:linear-gradient(180deg,#1e3a8a,#0f172a);
   color:white;
   padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
 .sidebar h2{
-  margin-top:0;
+  margin:0 0 15px 0;
+  font-size:20px;
 }
 
 .sidebar button{
-  width:100%;
-  margin:6px 0;
   padding:10px;
   border:none;
-  border-radius:6px;
+  border-radius:8px;
   cursor:pointer;
+  background:rgba(255,255,255,0.1);
+  color:white;
+  transition:0.3s;
 }
 
+.sidebar button:hover{
+  background:rgba(255,255,255,0.25);
+}
+
+/* Content */
 .content{
   flex:1;
-  padding:20px;
+  padding:25px;
   overflow:auto;
 }
 
@@ -44,32 +53,54 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  margin-bottom:20px;
 }
 
 .card{
   background:white;
-  padding:20px;
-  margin-top:15px;
-  border-radius:10px;
-  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+  padding:25px;
+  border-radius:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  margin-bottom:20px;
 }
 
+/* Inputs */
 input, select{
-  padding:8px;
+  padding:10px;
   margin:6px 0;
-  width:90%;
-  max-width:300px;
+  width:100%;
+  max-width:350px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  outline:none;
 }
 
 button{
-  background:#1e3a8a;
+  padding:10px 16px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#2563eb;
   color:white;
+  transition:0.3s;
 }
 
 button:hover{
-  background:#0f2c6c;
+  background:#1d4ed8;
 }
-</style>
+
+/* Responsive */
+@media(max-width:768px){
+  body{
+    flex-direction:column;
+  }
+  .sidebar{
+    width:100%;
+    flex-direction:row;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+}
 </head>
 
 <body>
