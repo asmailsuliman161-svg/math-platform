@@ -3,182 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>منصة الهداية</title>
+<title>SmartMath</title>
 
 <style>
 body{
-  font-family: Arial;
   margin:0;
-  background:#0f172a;
+  font-family: Arial, sans-serif;
+  display:flex;
+  height:100vh;
+  background:#f4f6fb;
+}
+
+.sidebar{
+  width:220px;
+  background:#1e3a8a;
   color:white;
-  text-align:center;
+  padding:20px;
 }
 
-header{
-  background:#1e293b;
-  padding:15px;
-  font-size:22px;
-  font-weight:bold;
+.sidebar h2{
+  margin-top:0;
 }
 
-button{
-  padding:10px 16px;
-  margin:6px;
+.sidebar button{
+  width:100%;
+  margin:6px 0;
+  padding:10px;
   border:none;
-  border-radius:8px;
-  cursor:pointer;
-  background:#3b82f6;
-  color:white;
-}
-
-button:hover{
-  background:#2563eb;
-}
-
-input{
-  padding:8px;
-  margin:5px;
-  width:80%;
-  max-width:300px;
   border-radius:6px;
-  border:none;
+  cursor:pointer;
+}
+
+.content{
+  flex:1;
+  padding:20px;
+  overflow:auto;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 .card{
   background:white;
-  color:black;
-  padding:15px;
-  margin:10px auto;
+  padding:20px;
+  margin-top:15px;
+  border-radius:10px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+}
+
+input, select{
+  padding:8px;
+  margin:6px 0;
   width:90%;
-  max-width:400px;
-  border-radius:12px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  max-width:300px;
 }
 
-.admin{
-  background:#facc15;
-  color:black;
+button{
+  background:#1e3a8a;
+  color:white;
 }
 
+button:hover{
+  background:#0f2c6c;
+}
 </style>
 </head>
 
 <body>
 
-<header>🎓 منصة الهداية الذكية</header>
+<div class="sidebar">
+  <h2>SmartMath</h2>
+  <button onclick="showHome()">الرئيسية</button>
+  <button onclick="showLibrary()">المكتبة</button>
+  <button onclick="showAdmin()">لوحة التحكم</button>
+  <button onclick="showSuperAdmin()">لوحة المدير العام</button>
+  <button onclick="logout()">خروج</button>
+</div>
 
-<div id="app"></div>
+<div class="content">
+  <div class="topbar">
+    <h3 id="pageTitle">Dashboard</h3>
+    <select onchange="changeLang(this.value)">
+      <option value="ar">العربية</option>
+      <option value="en">English</option>
+      <option value="zh">中文</option>
+      <option value="ur">اردو</option>
+    </select>
+  </div>
 
-<!-- Firebase -->
+  <div id="main"></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
 
-// 🔹 ضع بيانات Firebase الخاصة بك هنا
+// 🔴 ضع بيانات Firebase هنا فقط
 const firebaseConfig = {
-  apiKey: "ضع_المفتاح_هنا",
-  authDomain: "ضع_الدومين_هنا",
-  projectId: "ضع_معرف_المشروع",
-  storageBucket: "ضع_المخزن",
-  messagingSenderId: "ضع_المرسل",
-  appId: "ضع_appId"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
 
-function start(){
-  document.getElementById("app").innerHTML=`
-    <button onclick="student()">دخول طالب</button>
-    <button class="admin" onclick="admin()">دخول معلم</button>
+function showHome(){
+  document.getElementById("pageTitle").innerText="Home";
+  document.getElementById("main").innerHTML=`
+    <div class="card">
+      <h3>مرحبًا بكم في SmartMath</h3>
+      <p>Global Education Platform</p>
+      <p>Founder: Asmail Suliman Hassan Suliman</p>
+    </div>
   `;
 }
 
-function student(){
-  db.collection("questions").get().then(snapshot=>{
-    if(snapshot.empty){
-      alert("لا توجد أسئلة بعد");
+function showLibrary(){
+  document.getElementById("pageTitle").innerText="Library";
+  document.getElementById("main").innerHTML=`
+    <div class="card">
+      <h3>📚 المكتبة</h3>
+      <input id="bookTitle" placeholder="اسم الكتاب">
+      <input id="bookUrl" placeholder="رابط الكتاب">
+      <button onclick="addBook()">إضافة</button>
+      <div id="books"></div>
+    </div>
+  `;
+  loadBooks();
+}
+
+function addBook(){
+  db.collection("books").add({
+    title: document.getElementById("bookTitle").value,
+    url: document.getElementById("bookUrl").value,
+    isPremium:false
+  });
+}
+
+function loadBooks(){
+  db.collection("books").onSnapshot(snapshot=>{
+    let html="";
+    snapshot.forEach(doc=>{
+      html+=`<p><a href="${doc.data().url}" target="_blank">${doc.data().title}</a></p>`;
+    });
+    document.getElementById("books").innerHTML=html;
+  });
+}
+
+function showAdmin(){
+  let user = auth.currentUser;
+  if(!user) return;
+
+  db.collection("users").doc(user.uid).get().then(doc=>{
+    if(doc.data().role !== "teacher" && doc.data().role !== "superadmin"){
+      alert("غير مصرح");
       return;
     }
 
-    document.getElementById("app").innerHTML="";
-    snapshot.forEach(doc=>{
-      document.getElementById("app").innerHTML+=`
-        <div class="card">
-          <p>${doc.data().question}</p>
-        </div>
-      `;
-    });
-
-    document.getElementById("app").innerHTML+=`
-      <br><button onclick="start()">رجوع</button>
+    document.getElementById("main").innerHTML=`
+      <div class="card">
+        <h3>إضافة اختبار</h3>
+        <input id="examTitle" placeholder="عنوان الاختبار">
+        <button onclick="addExam()">إضافة</button>
+      </div>
     `;
   });
 }
 
-function admin(){
-  let pass=prompt("أدخل كلمة المرور:");
-  if(pass==="1234"){
-    showAdmin();
-  }else{
-    alert("كلمة مرور خاطئة");
-  }
-}
-
-function showAdmin(){
-  document.getElementById("app").innerHTML=`
-    <h2>لوحة المعلم</h2>
-
-    <input id="questionInput" placeholder="اكتب السؤال">
-    <br>
-    <button onclick="addQuestion()">إضافة سؤال</button>
-
-    <h3>الأسئلة:</h3>
-    <div id="list"></div>
-
-    <br>
-    <button onclick="start()">رجوع</button>
-  `;
-
-  loadQuestions();
-}
-
-function addQuestion(){
-  let text=document.getElementById("questionInput").value;
-  if(text==="") return;
-
-  db.collection("questions").add({
-    question:text
-  }).then(()=>{
-    loadQuestions();
-    document.getElementById("questionInput").value="";
+function addExam(){
+  db.collection("exams").add({
+    title: document.getElementById("examTitle").value,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 }
 
-function loadQuestions(){
-  db.collection("questions").get().then(snapshot=>{
-    let list=document.getElementById("list");
-    list.innerHTML="";
+function showSuperAdmin(){
+  let user = auth.currentUser;
+  if(!user) return;
 
+  db.collection("users").doc(user.uid).get().then(doc=>{
+    if(doc.data().role !== "superadmin"){
+      alert("غير مصرح");
+      return;
+    }
+
+    document.getElementById("main").innerHTML=`
+      <div class="card">
+        <h3>👑 المدير العام</h3>
+        <button onclick="loadUsers()">إدارة المستخدمين</button>
+        <button onclick="loadStats()">الإحصائيات</button>
+      </div>
+    `;
+  });
+}
+
+function loadUsers(){
+  db.collection("users").get().then(snapshot=>{
+    let html="<div class='card'><h3>المستخدمون</h3>";
     snapshot.forEach(doc=>{
-      list.innerHTML+=`
-        <div class="card">
-          <p>${doc.data().question}</p>
-          <button onclick="deleteQuestion('${doc.id}')">حذف</button>
-        </div>
-      `;
+      html+=`<p>${doc.data().email} - ${doc.data().role}</p>`;
     });
+    html+="</div>";
+    document.getElementById("main").innerHTML=html;
   });
 }
 
-function deleteQuestion(id){
-  db.collection("questions").doc(id).delete().then(()=>{
-    loadQuestions();
+function loadStats(){
+  Promise.all([
+    db.collection("users").get(),
+    db.collection("schools").get()
+  ]).then(([u,s])=>{
+    document.getElementById("main").innerHTML=`
+      <div class="card">
+        <h3>📊 الإحصائيات</h3>
+        <p>المستخدمون: ${u.size}</p>
+        <p>المدارس: ${s.size}</p>
+      </div>
+    `;
   });
 }
 
-start();
+function changeLang(lang){
+  localStorage.setItem("lang",lang);
+}
+
+function logout(){
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    showHome();
+  }
+});
+
+showHome();
 
 </script>
 
